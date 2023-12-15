@@ -68,7 +68,7 @@ private:
 
 	bool CreateFolderList(const wchar_t* pwzFolderPath);
 	void SetPlayerFolder(const wchar_t* pwzFolderPath);
-	void SetPlayFiles(const wchar_t* wstrImageFolderPath, const wchar_t* wstrAudioFolderPath);
+	void SetPlayFiles(const wchar_t* pwzImageFolderPath, const wchar_t* pwzAudioFolderPath);
 
 	CScenePlayer* m_pScenePlayer = nullptr;
 	CMediaPlayer* m_pMediaPlayer = nullptr;
