@@ -147,12 +147,6 @@ bool CScenePlayer::DisplayImage()
 		m_pDxgiSwapChain1->Present1(1, 0, &params);
 	}
 
-	//if (m_nIndex > 1 && m_nIndex < m_image_info.size() - 1 && !m_bPause)
-	//{
-	//	StartThreadpoolTimer();
-	//	++m_nIndex;
-	//	if (m_nIndex >= m_image_info.size() - 2)m_nIndex = 2;
-	//}
 	/*停止時は何もしない*/
 	if (!m_bPause)
 	{
@@ -212,29 +206,6 @@ void CScenePlayer::Next()
 	}
 	if (m_nIndex >= m_image_info.size())m_nIndex = 0;
 	Update();
-
-	//bool bIsInAnimation = m_nIndex > 1 && m_nIndex < m_image_info.size() - 1;
-	//if (!bIsInAnimation && !m_bPause)
-	//{
-	//	EndThreadpoolTimer();
-	//	++m_nIndex;
-	//}
-	//else if (bIsInAnimation)
-	//{
-	//	if (m_bPause)
-	//	{
-	//		++m_nIndex;
-	//		if (m_nIndex >= m_image_info.size() - 2)m_nIndex = 2;
-	//	}
-	//	else
-	//	{
-	//		EndThreadpoolTimer();
-	//		m_nIndex = m_image_info.size() - 1;
-	//	}
-	//}
-
-	//if (m_nIndex >= m_image_info.size())m_nIndex = 0;
-	//Update();
 }
 /*拡大*/
 void CScenePlayer::UpScale()
