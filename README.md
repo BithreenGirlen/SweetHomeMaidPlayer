@@ -43,12 +43,12 @@ Right button + left button|Move window. This works only when the window bars are
 
 | Menu | Item | Action |
 ----|---- |---- 
-Folder| Open| Show folder select dialogue.
- -| Next| Open the next folder in naming order.
- -| Back| Open the previous folder in naming order.
-Audio| Next| Play next audio file.
- -| Back| Play previous audio file.
+Folder| Open| Show a folder select dialogue.
+ -| Next| Open the next folder.
+ -| Back| Open the previous folder.
+Audio| Next| Play the next audio file.
+ -| Back| Play the previous audio file.
  -| Play| Replay the current audio file.
  -| Loop| Set/reset loop setting.
- -| Setting| Show audio setting dialogue for the volume and the rate.
+ -| Setting| Show a dialogue for audio volume and rate setting.
 Image| Pause| Pause/resume the animation scene. In pause mode, left click gives frame-by-frame going.
