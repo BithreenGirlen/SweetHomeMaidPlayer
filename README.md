@@ -33,7 +33,7 @@ The scene action is heavily dependent on mouse inputs.
 Mouse wheel| Scale up/down
 Left button + mouse wheel| Speed up/down
 Left button click| Move on to next scene.
-Left button drag|Move Zooming frame. This works only when the scaling is beyond the display resolution.
+Left button drag|Move zooming frame. This works only when the scaling is beyond the display resolution.
 Middle button|Reset scaling/speed to default.
 Right button + mouse wheel|Play next/previous audio file.
 Right button + middle button|Remove/show window title bar and menu bar. In removing, the window goes to the origin of the display.
