@@ -147,7 +147,6 @@ bool CScenePlayer::DisplayImage()
 		m_pDxgiSwapChain1->Present1(1, 0, &params);
 	}
 
-	/*停止時は何もしない*/
 	if (!m_bPause)
 	{
 		if (m_nIndex > Division::kFirstAnimation && m_nIndex < Division::kSecondAnimation)
@@ -197,7 +196,6 @@ void CScenePlayer::Next()
 	}
 	else
 	{
-		/*停止時は何もしない*/
 		if (!m_bPause)
 		{
 			EndThreadpoolTimer();
