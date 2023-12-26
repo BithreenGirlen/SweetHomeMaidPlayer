@@ -1,12 +1,13 @@
 # SweetHomeMaidPlayer
 某寢室再生機  
-- Requisite for run
+- Requisite to run
   - Windows OS later than Window 8
-  - MSVC
+  - MSVC 2015-2022 (x64)
  
 ## How to play
 
-Select a folder like `Stillstill102009` or `VoiceStoryCardcard102009`, which are in the same directory, from window menu.
+1. Click `Open` menu item in the `Folder` entry.
+2. Select a folder like `Stillstill102009` or `VoiceStoryCardcard102009`, which are in the same directory.
 <pre>
 Resource
 ├ Stillstill102009
@@ -23,27 +24,26 @@ Resource
 └ ...
 </pre>
 
-After selecting either, the other one would be searched, though some scenes may lack audios or images.
+The other one will also be loaded after selecting either, though some scenes may lack audios or images.
 
-## Mouse input description
+## Mouse command functions
 
-The scene action is heavily dependent on mouse inputs.
-| Input | Action |
+| Command | Function |
 ----|---- 
 Mouse wheel| Scale up/down
-Left button + mouse wheel| Speed up/down
-Left button click| Move on to next scene.
-Left button drag|Move zooming frame. This works only when the scaling is beyond the display resolution.
-Middle button|Reset scaling/speed to default.
-Right button + mouse wheel|Play next/previous audio file.
-Right button + middle button|Remove/show window title bar and menu bar. In removing, the window goes to the origin of the display.
-Right button + left button|Move window. This works only when the window bars are removed.
+Left button + mouse wheel| Speed up/down the animation.
+Left button click| Go to the next scene.
+Left button drag|Move zooming frame. This works only when the size of scaled image is beyond the display resolution.
+Middle button|Reset scale/speed to default.
+Right button + mouse wheel|Play the next/previous audio file.
+Right button + middle button|Hide/show window title and menu bar. Having hidden, the window goes to the origin of the primary display.
+Right button + left button|Move window. This works only when the window title/bar are hidden.
 
-## Window menu description
+## Window menu functions
 
-| Menu | Item | Action |
+| Entry | Item | Function |
 ----|---- |---- 
-Folder| Open| Show a folder select dialogue.
+Folder| Open| Show folder select dialogue.
  -| Next| Open the next folder.
  -| Back| Open the previous folder.
 Audio| Next| Play the next audio file.
@@ -52,3 +52,4 @@ Audio| Next| Play the next audio file.
  -| Loop| Set/reset loop setting.
  -| Setting| Show a dialogue for audio volume and rate setting.
 Image| Pause| Pause/resume the animation scene. In pause mode, left click gives frame-by-frame going.
+
