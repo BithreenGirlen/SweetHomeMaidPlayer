@@ -645,9 +645,6 @@ void CMainWindow::SetPlayerFolder(const wchar_t* pwzFolderPath)
 /*再生ファイル群設定*/
 void CMainWindow::SetPlayFiles(const wchar_t* pwzImageFolderPath, const wchar_t* pwzAudioFolderPath)
 {
-    /*音声なし・画像なしの脚本あり*/
-    if (pwzImageFolderPath == nullptr)return;
-
     bool bRet = false;
 
     std::vector<std::wstring> imageFiles;
@@ -661,6 +658,20 @@ void CMainWindow::SetPlayFiles(const wchar_t* pwzImageFolderPath, const wchar_t*
     bRet = CreateFilePathList(pwzAudioFolderPath, L".mp3", audioFiles);
     if (bRet && m_pMediaPlayer != nullptr)
     {
+        auto IsVer2 = [](const std::wstring& wstr)
+            -> bool
+            {
+                return wcsstr(wstr.c_str(), L"_ver2") != nullptr;
+            };
+        size_t nRead = 0;
+        for (;;)
+        {
+            auto iter = std::find_if(audioFiles.begin() + nRead, audioFiles.end(), IsVer2);
+            if (iter == audioFiles.end() || iter == audioFiles.begin())break;
+            nRead = std::distance(audioFiles.begin(), iter);
+            audioFiles.erase(--iter);
+        }
+
         m_pMediaPlayer->SetFiles(audioFiles);
     }
 
