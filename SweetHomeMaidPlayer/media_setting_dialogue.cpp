@@ -8,7 +8,7 @@
 #include "media_setting_dialogue.h"
 #include "resource.h"
 
-#include "media_player.h"
+#include "mf_media_player.h"
 
 CMediaSettingDialogue::CMediaSettingDialogue()
 {
@@ -220,7 +220,7 @@ LRESULT CMediaSettingDialogue::OnSize()
 /*WM_VSCROLL*/
 LRESULT CMediaSettingDialogue::OnVScroll(WPARAM wParam, LPARAM lParam)
 {
-    CMediaPlayer* pPlayer = static_cast<CMediaPlayer*>(m_pMediaPlayer);
+    CMfMediaPlayer* pPlayer = static_cast<CMfMediaPlayer*>(m_pMediaPlayer);
     if (pPlayer != nullptr)
     {
         HANDLE hScroll = reinterpret_cast<HANDLE>(lParam);
@@ -293,7 +293,7 @@ void CMediaSettingDialogue::CreateSliders()
 /*現在値取得・表示*/
 void CMediaSettingDialogue::SetSliderPosition()
 {
-    CMediaPlayer* pPlayer = static_cast<CMediaPlayer*>(m_pMediaPlayer);
+    CMfMediaPlayer* pPlayer = static_cast<CMfMediaPlayer*>(m_pMediaPlayer);
     if (pPlayer != nullptr)
     {
         if (m_hVolumeSlider != nullptr)
