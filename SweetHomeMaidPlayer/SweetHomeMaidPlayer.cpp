@@ -2,7 +2,6 @@
 //
 
 #include "framework.h"
-#include "SweetHomeMaidPlayer.h"
 #include "main_window.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

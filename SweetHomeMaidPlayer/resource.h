@@ -4,7 +4,6 @@
 //
 #define IDC_MYICON                      2
 #define IDR_MAINFRAME                   128
-#define IDI_ICON1                       129
 #define IDI_ICON_SWM                    129
 #define IDC_STATIC                      -1
 
