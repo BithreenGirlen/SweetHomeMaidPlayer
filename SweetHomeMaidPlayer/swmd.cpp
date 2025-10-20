@@ -1,14 +1,38 @@
-
+Ôªø
 
 #include "swmd.h"
 #include "win_filesystem.h"
 #include "win_dialogue.h"
 #include "win_text.h"
-
-#include "deps/nlohmann/json.hpp"
+#include "json_minimal.h"
+#include "text_utility.h"
 
 namespace swmd
 {
+	static std::wstring ExtractEpisodeScript(const std::wstring& wstrFilePath)
+	{
+		std::wstring wstrScenario;
+		std::string strFile = win_filesystem::LoadFileAsString(wstrFilePath.c_str());
+		if (!strFile.empty())
+		{
+			char* p1 = &strFile[0];
+			const size_t indices[] = { 5, 0, 2 };
+			char* p2 = nullptr;
+			bool bRet = json_minimal::ExtractArrayValueByIndices(p1, indices, sizeof(indices) / sizeof(indices[0]), &p2);
+			if (bRet)
+			{
+				wstrScenario = win_text::WidenUtf8(p2);
+				free(p2);
+
+				text_utility::ReplaceAll(wstrScenario, L"\\r", L"\r");
+				text_utility::ReplaceAll(wstrScenario, L"\\n", L"\n");
+				text_utility::ReplaceAll(wstrScenario, L"\"", L"");
+			}
+		}
+
+		return wstrScenario;
+	}
+
 	void TextToLines(const std::wstring& wstrText, const wchar_t* wpzKey, size_t nKeyLen, std::vector<std::wstring>& lines)
 	{
 		if (wpzKey == nullptr)return;
@@ -75,28 +99,8 @@ namespace swmd
 
 bool swmd::LoadScenario(const std::wstring& wstrVoiceFolderPath, const std::wstring& wstrCardId, std::vector<adv::TextDatum>& textData)
 {
-	std::wstring wstrEpisodeJson = GetEpisodeJsonPath(wstrVoiceFolderPath, wstrCardId);
-
-	std::string strFile = win_filesystem::LoadFileAsString(wstrEpisodeJson.c_str());
-	if (strFile.empty())return false;
-
-	std::string strError;
-	std::wstring wstrScenario;
-
-	try
-	{
-		nlohmann::json nlJson = nlohmann::json::parse(strFile);
-		wstrScenario = win_text::WidenUtf8(nlJson.at(5).at(0).at(2));
-	}
-	catch (nlohmann::json::exception e)
-	{
-		strError = e.what();
-	}
-
-	if (!strError.empty())
-	{
-		win_dialogue::ShowMessageBox("Parse error", strError.c_str());
-	}
+	std::wstring wstrEpisodeJsonPath = GetEpisodeJsonPath(wstrVoiceFolderPath, wstrCardId);
+	std::wstring wstrScenario = ExtractEpisodeScript(wstrEpisodeJsonPath);
 
 	std::vector<std::wstring> lines;
 	constexpr wchar_t wszSeparator[] = L"@ShowCastMessage,";
@@ -116,7 +120,7 @@ bool swmd::LoadScenario(const std::wstring& wstrVoiceFolderPath, const std::wstr
 
 		if (line.size() > 2 && line.at(0) == '$' && line.at(1) == '$')
 		{
-			/*âπê∫éwíË*/
+			/*Èü≥Â£∞ÊåáÂÆö*/
 			nRead += 2;
 			const wchar_t* p = wcsstr(&line[nRead], L"\r\n");
 			if (p != nullptr)
