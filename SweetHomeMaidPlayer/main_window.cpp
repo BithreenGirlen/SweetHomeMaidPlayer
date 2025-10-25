@@ -209,11 +209,11 @@ LRESULT CMainWindow::OnPaint()
 		bool bRet = m_pScenePlayer->DrawImage();
 		if (bRet)
 		{
-			if (!m_textData.empty() && !m_bTextHidden && m_pD2TextWriter != nullptr)
+			if (m_nTextIndex < m_textData.size() && !m_bTextHidden && m_pD2TextWriter != nullptr)
 			{
-				const adv::TextDatum& t = m_textData.at(m_nTextIndex);
+				const adv::TextDatum& t = m_textData[m_nTextIndex];
 				std::wstring wstr = t.wstrText;
-				if (t.wstrText.back() != L'\n') wstr += L"\r\n ";
+				if (!wstr.empty() && wstr.back() != L'\n') wstr += L"\n ";
 				wstr += std::to_wstring(m_nTextIndex + 1) + L"/" + std::to_wstring(m_textData.size());
 				m_pD2TextWriter->OutLinedDraw(wstr.c_str(), static_cast<unsigned long>(wstr.size()));
 			}
@@ -691,6 +691,8 @@ void CMainWindow::UpdateScreen()
 /*文章送り・戻し*/
 void CMainWindow::ShiftText(bool bForward)
 {
+	if (m_textData.empty())return;
+
 	if (bForward)
 	{
 		++m_nTextIndex;
@@ -706,9 +708,9 @@ void CMainWindow::ShiftText(bool bForward)
 /*文章更新*/
 void CMainWindow::UpdateText()
 {
-	if (!m_textData.empty())
+	if (m_nTextIndex < m_textData.size())
 	{
-		const adv::TextDatum& t = m_textData.at(m_nTextIndex);
+		const adv::TextDatum& t = m_textData[m_nTextIndex];
 		if (!t.wstrVoicePath.empty())
 		{
 			if (m_pMediaPlayer != nullptr)
