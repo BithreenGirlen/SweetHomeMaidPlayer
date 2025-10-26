@@ -4,7 +4,6 @@
 
 #include <math.h>
 #include <shobjidl.h>
-#include <atlbase.h>
 #include <wincodec.h>
 
 #pragma comment (lib,"Windowscodecs.lib")
@@ -105,42 +104,31 @@ bool CScenePlayer::SetFiles(const std::vector<std::wstring>& filePaths)
 	}
 	ResetScale();
 
-	return m_image_info.size() > 0;
+	return m_images.size() > 0;
 }
 /*描画*/
 bool CScenePlayer::DrawImage()
 {
-	if (m_image_info.empty() || m_nIndex >= m_image_info.size() || m_pD2d1DeviceContext == nullptr || m_pDxgiSwapChain1 == nullptr)
+	if (m_images.empty() || m_nIndex >= m_images.size() || m_pD2d1DeviceContext == nullptr || m_pDxgiSwapChain1 == nullptr)
 	{
 		return false;
 	}
 
-	ImageInfo s = m_image_info.at(m_nIndex);
+	ID2D1Bitmap* p = m_images[m_nIndex].p;
+	if (p == nullptr)return false;
 
-	CComPtr<ID2D1Bitmap> pD2d1Bitmap;
-	HRESULT hr = E_FAIL;
-	UINT uiWidth = s.uiWidth;
-	UINT uiHeight = s.uiHeight;
-	INT iStride = s.iStride;
+	D2D1_SIZE_U s = p->GetPixelSize();
+	FLOAT fScale = static_cast<FLOAT>(::round(m_dbScale * 1000) / 1000);
 
-	hr = m_pD2d1DeviceContext->CreateBitmap(D2D1::SizeU(uiWidth, uiHeight),
-		D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)),
-		&pD2d1Bitmap);
-	if (SUCCEEDED(hr))
-	{
-		hr = pD2d1Bitmap->CopyFromMemory(nullptr, s.pixels.data(), s.iStride);
+	CComPtr<ID2D1Effect> pD2d1Effect;
+	HRESULT hr = m_pD2d1DeviceContext->CreateEffect(CLSID_D2D1Scale, &pD2d1Effect);
+	pD2d1Effect->SetInput(0, p);
+	hr = pD2d1Effect->SetValue(D2D1_SCALE_PROP_CENTER_POINT, D2D1::Vector2F(static_cast<FLOAT>(m_iXOffset), static_cast<FLOAT>(m_iYOffset)));
+	hr = pD2d1Effect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(fScale, fScale));
 
-		FLOAT fScale = static_cast<FLOAT>(::round(m_dbScale * 1000) / 1000);
-
-		CComPtr<ID2D1Effect> pD2d1Effect;
-		hr = m_pD2d1DeviceContext->CreateEffect(CLSID_D2D1Scale, &pD2d1Effect);
-		pD2d1Effect->SetInput(0, pD2d1Bitmap);
-		hr = pD2d1Effect->SetValue(D2D1_SCALE_PROP_CENTER_POINT, D2D1::Vector2F(static_cast<FLOAT>(m_iXOffset), static_cast<FLOAT>(m_iYOffset)));
-		hr = pD2d1Effect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(fScale, fScale));
-		m_pD2d1DeviceContext->BeginDraw();
-		m_pD2d1DeviceContext->DrawImage(pD2d1Effect, D2D1::Point2F(0.f, 0.f), D2D1::RectF(static_cast<FLOAT>(m_iXOffset), static_cast<FLOAT>(m_iYOffset), uiWidth * fScale, uiHeight * fScale), D2D1_INTERPOLATION_MODE_HIGH_QUALITY_CUBIC, D2D1_COMPOSITE_MODE_SOURCE_COPY);
-		m_pD2d1DeviceContext->EndDraw();
-	}
+	m_pD2d1DeviceContext->BeginDraw();
+	m_pD2d1DeviceContext->DrawImage(pD2d1Effect, D2D1::Point2F(0.f, 0.f), D2D1::RectF(static_cast<FLOAT>(m_iXOffset), static_cast<FLOAT>(m_iYOffset), s.width * fScale, s.height * fScale), D2D1_INTERPOLATION_MODE_HIGH_QUALITY_CUBIC, D2D1_COMPOSITE_MODE_SOURCE_COPY);
+	m_pD2d1DeviceContext->EndDraw();
 
 	if (!m_bPause)
 	{
@@ -150,11 +138,11 @@ bool CScenePlayer::DrawImage()
 			++m_nIndex;
 			if (m_nIndex >= Division::kSecondAnimation)m_nIndex = Division::kFirstAnimation + 1LL;
 		}
-		else if (m_nIndex >= Division::kSecondAnimation && m_nIndex < m_image_info.size() - 1)
+		else if (m_nIndex >= Division::kSecondAnimation && m_nIndex < m_images.size() - 1)
 		{
 			StartThreadpoolTimer();
 			++m_nIndex;
-			if (m_nIndex >= m_image_info.size() - 1)m_nIndex = Division::kSecondAnimation + 1LL;
+			if (m_nIndex >= m_images.size() - 1)m_nIndex = Division::kSecondAnimation + 1LL;
 		}
 	}
 
@@ -185,17 +173,17 @@ void CScenePlayer::Next()
 			m_nIndex = Division::kSecondAnimation + 1LL;
 		}
 	}
-	else if (m_nIndex >= Division::kSecondAnimation && m_nIndex < m_image_info.size() - 1)
+	else if (m_nIndex >= Division::kSecondAnimation && m_nIndex < m_images.size() - 1)
 	{
 		if (m_bPause)
 		{
 			++m_nIndex;
-			if (m_nIndex >= m_image_info.size() - 1)m_nIndex = Division::kSecondAnimation + 1LL;
+			if (m_nIndex >= m_images.size() - 1)m_nIndex = Division::kSecondAnimation + 1LL;
 		}
 		else
 		{
 			EndThreadpoolTimer();
-			m_nIndex = m_image_info.size() - 1;
+			m_nIndex = m_images.size() - 1;
 		}
 	}
 	else
@@ -206,7 +194,7 @@ void CScenePlayer::Next()
 			++m_nIndex;
 		}
 	}
-	if (m_nIndex >= m_image_info.size())m_nIndex = 0;
+	if (m_nIndex >= m_images.size())m_nIndex = 0;
 	Update();
 }
 /*拡大*/
@@ -273,14 +261,12 @@ bool CScenePlayer::SwitchPause()
 /*消去*/
 void CScenePlayer::Clear()
 {
-	m_image_info.clear();
+	m_images.clear();
 	m_nIndex = 0;
 }
 /*画像ファイル取り込み*/
 bool CScenePlayer::LoadImageToMemory(const wchar_t* pzFilePath)
 {
-	ImageInfo s;
-
 	CComPtr<IWICImagingFactory> pWicImageFactory;
 	HRESULT hr = ::CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pWicImageFactory));
 	if (FAILED(hr))return false;
@@ -300,28 +286,15 @@ bool CScenePlayer::LoadImageToMemory(const wchar_t* pzFilePath)
 	pWicFormatConverter->Initialize(pWicFrameDecode, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.f, WICBitmapPaletteTypeCustom);
 	if (FAILED(hr))return false;
 
-	hr = pWicFormatConverter->GetSize(&s.uiWidth, &s.uiHeight);
-	if (FAILED(hr))return false;
-
 	CComPtr<IWICBitmap> pWicBitmap;
 	hr = pWicImageFactory->CreateBitmapFromSource(pWicFormatConverter, WICBitmapCacheOnDemand, &pWicBitmap);
 	if (FAILED(hr))return false;
 
-	CComPtr<IWICBitmapLock> pWicBitmapLock;
-	WICRect wicRect{ 0, 0, static_cast<INT>(s.uiWidth), static_cast<INT>(s.uiHeight) };
-	hr = pWicBitmap->Lock(&wicRect, WICBitmapLockRead, &pWicBitmapLock);
+	CComPtr<ID2D1Bitmap> pD2d1Bitmap;
+	hr = m_pD2d1DeviceContext->CreateBitmapFromWicBitmap(pWicBitmap, D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)), &pD2d1Bitmap);
 	if (FAILED(hr))return false;
 
-	UINT uiStride;
-	hr = pWicBitmapLock->GetStride(&uiStride);
-	if (FAILED(hr))return false;
-
-	s.iStride = static_cast<INT>(uiStride);
-	s.pixels.resize(static_cast<size_t>(s.iStride * s.uiHeight));
-	hr = pWicBitmap->CopyPixels(nullptr, uiStride, static_cast<UINT>(s.pixels.size()), s.pixels.data());
-	if (FAILED(hr))return false;
-
-	m_image_info.push_back(s);
+	m_images.push_back(std::move(pD2d1Bitmap));
 
 	return true;
 }
@@ -336,7 +309,7 @@ void CScenePlayer::Update()
 /*窓枠寸法調整*/
 void CScenePlayer::ResizeWindow()
 {
-	if (!m_image_info.empty() && m_hRetWnd != nullptr)
+	if (!m_images.empty() && m_hRetWnd != nullptr)
 	{
 		RECT rect;
 		if (!m_bBarHidden)
@@ -348,8 +321,12 @@ void CScenePlayer::ResizeWindow()
 			::GetClientRect(m_hRetWnd, &rect);
 		}
 
-		int iX = static_cast<int>(::round(m_image_info.at(0).uiWidth * (m_dbScale * 1000) / 1000));
-		int iY = static_cast<int>(::round(m_image_info.at(0).uiHeight * (m_dbScale * 1000) / 1000));
+		ID2D1Bitmap* p = m_images[0].p;
+		if (p == nullptr)return;
+		D2D1_SIZE_U s = p->GetPixelSize();
+
+		int iX = static_cast<int>(::round(s.width * (m_dbScale * 1000) / 1000));
+		int iY = static_cast<int>(::round(s.height * (m_dbScale * 1000) / 1000));
 		rect.right = iX + rect.left;
 		rect.bottom = iY + rect.top;
 		if (!m_bBarHidden)
@@ -373,10 +350,14 @@ void CScenePlayer::ResizeWindow()
 /*原点位置調整*/
 void CScenePlayer::AdjustOffset(int iXAddOffset, int iYAddOffset)
 {
-	if (!m_image_info.empty() && m_hRetWnd != nullptr)
+	if (!m_images.empty() && m_hRetWnd != nullptr)
 	{
-		int iX = static_cast<int>(::round(m_image_info.at(0).uiWidth * (m_dbScale * 1000) / 1000));
-		int iY = static_cast<int>(::round(m_image_info.at(0).uiHeight * (m_dbScale * 1000) / 1000));
+		ID2D1Bitmap* p = m_images[0].p;
+		if (p == nullptr)return;
+		D2D1_SIZE_U s = p->GetPixelSize();
+
+		int iX = static_cast<int>(::round(s.width * (m_dbScale * 1000) / 1000));
+		int iY = static_cast<int>(::round(s.height * (m_dbScale * 1000) / 1000));
 
 		RECT rc;
 		::GetClientRect(m_hRetWnd, &rc);

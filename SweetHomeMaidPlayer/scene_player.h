@@ -1,4 +1,4 @@
-#ifndef SCENE_PLAYER_H_
+﻿#ifndef SCENE_PLAYER_H_
 #define SCENE_PLAYER_H_
 
 #include <Windows.h>
@@ -6,17 +6,10 @@
 #include <d2d1_1.h>
 #include <dxgi1_2.h>
 #include <d3d11.h>
+#include <atlbase.h>
 
 #include <string>
 #include <vector>
-
-struct ImageInfo
-{
-    UINT uiWidth = 0;
-    UINT uiHeight = 0;
-    INT iStride = 0;
-    std::vector<BYTE> pixels;
-};
 
 class CScenePlayer
 {
@@ -52,8 +45,8 @@ private:
     ID2D1DeviceContext* m_pD2d1DeviceContext = nullptr;
     IDXGISwapChain1* m_pDxgiSwapChain1 = nullptr;
 
-    std::vector<ImageInfo> m_image_info;
     size_t m_nIndex = 0;
+    std::vector<CComPtr<ID2D1Bitmap>> m_images;
 
     double m_dbScale = 1.0;
     int m_iXOffset = 0;
