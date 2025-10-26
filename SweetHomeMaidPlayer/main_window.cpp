@@ -37,14 +37,14 @@ bool CMainWindow::Create(HINSTANCE hInstance)
 	wcex.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground = ::GetSysColorBrush(COLOR_BTNFACE);
 	wcex.lpszMenuName = MAKEINTRESOURCEW(IDI_ICON_SWM);
-	wcex.lpszClassName = m_class_name.c_str();
+	wcex.lpszClassName = m_class_name;
 	wcex.hIconSm = ::LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON_SWM));
 
 	if (::RegisterClassExW(&wcex))
 	{
 		m_hInstance = hInstance;
 
-		m_hWnd = ::CreateWindowW(m_class_name.c_str(), m_window_name.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MINIMIZEBOX & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
+		m_hWnd = ::CreateWindowW(m_class_name, m_window_name, WS_OVERLAPPEDWINDOW & ~WS_MINIMIZEBOX & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
 			CW_USEDEFAULT, CW_USEDEFAULT, 200, 200, nullptr, nullptr, hInstance, this);
 		if (m_hWnd != nullptr)
 		{
@@ -161,8 +161,7 @@ LRESULT CMainWindow::OnCreate(HWND hWnd)
 	m_pMediaPlayer = new CMfMediaPlayer(m_hWnd, EventMessage::kAudioPlayer);
 
 	m_pD2TextWriter = new CD2TextWriter(m_pScenePlayer->GetD2Factory(), m_pScenePlayer->GetD2DeviceContext());
-
-	m_pD2TextWriter->SetupOutLinedDrawing(m_textFontFilePath.c_str());
+	m_pD2TextWriter->SetupOutLinedDrawing(L"C:\\Windows\\Fonts\\yumindb.ttf");
 
 	return 0;
 }
@@ -194,7 +193,7 @@ LRESULT CMainWindow::OnDestroy()
 LRESULT CMainWindow::OnClose()
 {
 	::DestroyWindow(m_hWnd);
-	::UnregisterClassW(m_class_name.c_str(), m_hInstance);
+	::UnregisterClassW(m_class_name, m_hInstance);
 
 	return 0;
 }
@@ -470,7 +469,7 @@ void CMainWindow::MenuOnOpen()
 	std::wstring wstrFolder = win_dialogue::SelectWorkFolder(m_hWnd);
 	if (!wstrFolder.empty())
 	{
-		SetPlayerFolder(wstrFolder.c_str());
+		SetPlayerFolder(wstrFolder);
 		CreateFolderList(wstrFolder.c_str());
 	}
 }
@@ -481,7 +480,7 @@ void CMainWindow::MenuOnNextFolder()
 
 	++m_nFolderIndex;
 	if (m_nFolderIndex >= m_folders.size())m_nFolderIndex = 0;
-	SetPlayerFolder(m_folders.at(m_nFolderIndex).c_str());
+	SetPlayerFolder(m_folders[m_nFolderIndex]);
 }
 /*前フォルダに移動*/
 void CMainWindow::MenuOnForeFolder()
@@ -490,7 +489,7 @@ void CMainWindow::MenuOnForeFolder()
 
 	--m_nFolderIndex;
 	if (m_nFolderIndex >= m_folders.size())m_nFolderIndex = m_folders.size() - 1;
-	SetPlayerFolder(m_folders.at(m_nFolderIndex).c_str());
+	SetPlayerFolder(m_folders[m_nFolderIndex]);
 }
 /*音声ループ設定変更*/
 void CMainWindow::MenuOnLoop()
@@ -548,7 +547,7 @@ void CMainWindow::ChangeWindowTitle(const wchar_t* pzTitle)
 		wstr = pos == std::wstring::npos ? wstrTitle : wstrTitle.substr(pos + 1);
 	}
 
-	::SetWindowTextW(m_hWnd, wstr.empty() ? m_window_name.c_str() : wstr.c_str());
+	::SetWindowTextW(m_hWnd, wstr.empty() ? m_window_name : wstr.c_str());
 }
 /*表示形式変更*/
 void CMainWindow::SwitchWindowMode()
@@ -590,19 +589,16 @@ bool CMainWindow::CreateFolderList(const wchar_t* pwzFolderPath)
 
 }
 /*再生フォルダ設定*/
-void CMainWindow::SetPlayerFolder(const wchar_t* pwzFolderPath)
+void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 {
-	if (pwzFolderPath == nullptr)return;
-
-	std::wstring wstrFolder = pwzFolderPath;
 	std::wstring wstrParent;
 	std::wstring wstrCurrent;
 
-	size_t nPos = wstrFolder.find_last_of(L"\\/");
+	size_t nPos = wstrFolderPath.find_last_of(L"\\/");
 	if (nPos != std::wstring::npos)
 	{
-		wstrParent = wstrFolder.substr(0, nPos);
-		wstrCurrent = wstrFolder.substr(nPos + 1);
+		wstrParent = wstrFolderPath.substr(0, nPos);
+		wstrCurrent = wstrFolderPath.substr(nPos + 1);
 	}
 
 	if (wstrParent.empty())return;
@@ -614,12 +610,12 @@ void CMainWindow::SetPlayerFolder(const wchar_t* pwzFolderPath)
 	{
 		if (wcsstr(wstrCurrent.c_str(), L"Stillstill") != nullptr)
 		{
-			wstrImageFolderPath = wstrFolder;
+			wstrImageFolderPath = wstrFolderPath;
 			wstrAudioFolderPath = wstrParent + L"\\VoiceStoryCardcard" + wstrCurrent.substr(nPos);
 		}
 		else
 		{
-			wstrAudioFolderPath = wstrFolder;
+			wstrAudioFolderPath = wstrFolderPath;
 			wstrImageFolderPath = wstrParent + L"\\Stillstill" + wstrCurrent.substr(nPos);
 		}
 
@@ -629,7 +625,7 @@ void CMainWindow::SetPlayerFolder(const wchar_t* pwzFolderPath)
 
 	SetImages(wstrImageFolderPath.c_str());
 
-	ChangeWindowTitle(m_bPlayReady ? pwzFolderPath : nullptr);
+	ChangeWindowTitle(m_bPlayReady ? wstrFolderPath.c_str() : nullptr);
 }
 /*文章一覧作成*/
 void CMainWindow::CreateMessgaeList(const wchar_t* pwzCardId, const wchar_t* pwzAudioFolderPath)
@@ -648,19 +644,12 @@ void CMainWindow::CreateMessgaeList(const wchar_t* pwzCardId, const wchar_t* pwz
 		bool bRet = win_filesystem::CreateFilePathList(pwzAudioFolderPath, L".mp3", audioFiles);
 		if (bRet && m_pMediaPlayer != nullptr)
 		{
-			auto IsVer2 = [](const std::wstring& wstr)
+			audioFiles.erase(std::remove_if(audioFiles.begin(), audioFiles.end(),
+				[](const std::wstring& wstr)
 				-> bool
 				{
-					return wcsstr(wstr.c_str(), L"_ver2") != nullptr;
-				};
-			size_t nRead = 0;
-			for (;;)
-			{
-				auto iter = std::find_if(audioFiles.begin() + nRead, audioFiles.end(), IsVer2);
-				if (iter == audioFiles.end() || iter == audioFiles.begin())break;
-				nRead = std::distance(audioFiles.begin(), iter);
-				audioFiles.erase(--iter);
-			}
+					return wstr.find(L"_ver2") != std::wstring::npos;
+				}), audioFiles.end());
 
 			for (const std::wstring& audioFile : audioFiles)
 			{

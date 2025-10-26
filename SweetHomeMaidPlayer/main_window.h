@@ -1,4 +1,4 @@
-#ifndef MAIN_WINDOW_H_
+﻿#ifndef MAIN_WINDOW_H_
 #define MAIN_WINDOW_H_
 
 #include <Windows.h>
@@ -19,8 +19,8 @@ public:
 	int MessageLoop();
 	HWND GetHwnd()const { return m_hWnd;}
 private:
-	const std::wstring m_class_name = L"SweetHomeMaid player window";
-	std::wstring m_window_name = L"SweetHomeMaid player";
+	const wchar_t* m_class_name = L"SweetHomeMaid player window";
+	const wchar_t* m_window_name = L"SweetHomeMaid player";
 	HINSTANCE m_hInstance = nullptr;
 	HWND m_hWnd = nullptr;
 
@@ -82,7 +82,7 @@ private:
 	void SwitchWindowMode();
 
 	bool CreateFolderList(const wchar_t* pwzFolderPath);
-	void SetPlayerFolder(const wchar_t* pwzFolderPath);
+	void SetPlayerFolder(const std::wstring &wstrFolderPath);
 	void CreateMessgaeList(const wchar_t* pwzCardId, const wchar_t* pwzAudioFolderPath);
 	void SetImages(const wchar_t* pwzImageFolderPath);
 
@@ -92,7 +92,6 @@ private:
 
 	CMfMediaPlayer* m_pMediaPlayer = nullptr;
 	CD2TextWriter* m_pD2TextWriter = nullptr;
-	std::wstring m_textFontFilePath = L"C:\\Windows\\Fonts\\yumindb.ttf";
 
 	std::vector<adv::TextDatum> m_textData;
 	size_t m_nTextIndex = 0;
