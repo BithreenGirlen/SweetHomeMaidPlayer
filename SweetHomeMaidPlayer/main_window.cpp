@@ -44,8 +44,12 @@ bool CMainWindow::Create(HINSTANCE hInstance)
 	{
 		m_hInstance = hInstance;
 
+		UINT uiDpi = ::GetDpiForSystem();
+		int iWindowWidth = ::MulDiv(200, uiDpi, USER_DEFAULT_SCREEN_DPI);
+		int iWindowHeight = ::MulDiv(200, uiDpi, USER_DEFAULT_SCREEN_DPI);
+
 		m_hWnd = ::CreateWindowW(m_class_name, m_window_name, WS_OVERLAPPEDWINDOW & ~WS_MINIMIZEBOX & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
-			CW_USEDEFAULT, CW_USEDEFAULT, 200, 200, nullptr, nullptr, hInstance, this);
+			CW_USEDEFAULT, CW_USEDEFAULT, iWindowWidth, iWindowHeight, nullptr, nullptr, hInstance, this);
 		if (m_hWnd != nullptr)
 		{
 			return true;

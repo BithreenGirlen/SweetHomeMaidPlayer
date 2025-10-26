@@ -1,9 +1,7 @@
-#ifndef MEDIA_SETTING_DIALOGUE_H_
+﻿#ifndef MEDIA_SETTING_DIALOGUE_H_
 #define MEDIA_SETTING_DIALOGUE_H_
 
 #include <Windows.h>
-
-#include <string>
 
 class CMediaSettingDialogue
 {
@@ -14,8 +12,8 @@ public:
 	int MessageLoop();
 	HWND GetHwnd()const { return m_hWnd; }
 private:
-	std::wstring m_class_name = L"Media player setting dialogue";
-	std::wstring m_window_name = L"Setting";
+	const wchar_t* m_class_name = L"Media player setting dialogue";
+	const wchar_t* m_window_name = L"Setting";
 	HINSTANCE m_hInstance = nullptr;
 	HWND m_hWnd = nullptr;
 	HWND m_hParentWnd = nullptr;
@@ -31,8 +29,8 @@ private:
 	LRESULT OnVScroll(WPARAM wParam, LPARAM lParam);
 	LRESULT OnCommand(WPARAM wParam);
 
-	enum Constants { kFontSize = 16, kTextWidth = 70};
-	enum Controls{kVolumeSlider = 1, kRateSkuder};
+	enum Constants { kFontSize = 20, kTextWidth = 70 };
+	enum Controls { kVolumeSlider = 1, kRateSkuder };
 	HFONT m_hFont = nullptr;
 	HWND m_hVolumeSlider = nullptr;
 	HWND m_hVolumeText = nullptr;
