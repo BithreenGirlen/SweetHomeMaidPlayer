@@ -162,7 +162,8 @@ LRESULT CMainWindow::OnCreate(HWND hWnd)
 
 	m_pScenePlayer = new CScenePlayer(m_hWnd);
 
-	m_pMediaPlayer = new CMfMediaPlayer(m_hWnd, EventMessage::kAudioPlayer);
+	m_pMediaPlayer = new CMfMediaPlayer();
+	m_pMediaPlayer->SetPlaybackWindow(m_hWnd, EventMessage::kAudioPlayer);
 
 	m_pD2TextWriter = new CD2TextWriter(m_pScenePlayer->GetD2Factory(), m_pScenePlayer->GetD2DeviceContext());
 	m_pD2TextWriter->SetupOutLinedDrawing(L"C:\\Windows\\Fonts\\yumindb.ttf");
@@ -196,6 +197,8 @@ LRESULT CMainWindow::OnDestroy()
 /*WM_CLOSE*/
 LRESULT CMainWindow::OnClose()
 {
+	::KillTimer(m_hWnd, Timer::kText);
+
 	::DestroyWindow(m_hWnd);
 	::UnregisterClassW(m_class_name, m_hInstance);
 
@@ -287,7 +290,13 @@ LRESULT CMainWindow::OnTimer(WPARAM wParam)
 	switch (wParam)
 	{
 	case Timer::kText:
-		AutoTexting();
+		if (m_pMediaPlayer != nullptr)
+		{
+			if (m_pMediaPlayer->IsEnded())
+			{
+				AutoTexting();
+			}
+		}
 		break;
 	default:
 		break;
@@ -595,17 +604,12 @@ bool CMainWindow::CreateFolderList(const wchar_t* pwzFolderPath)
 /*再生フォルダ設定*/
 void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 {
-	std::wstring wstrParent;
 	std::wstring wstrCurrent;
-
 	size_t nPos = wstrFolderPath.find_last_of(L"\\/");
 	if (nPos != std::wstring::npos)
 	{
-		wstrParent = wstrFolderPath.substr(0, nPos);
 		wstrCurrent = wstrFolderPath.substr(nPos + 1);
 	}
-
-	if (wstrParent.empty())return;
 
 	std::wstring wstrImageFolderPath;
 	std::wstring wstrAudioFolderPath;
@@ -614,21 +618,22 @@ void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 	{
 		std::wstring wstrCardId = wstrCurrent.substr(nPos);
 
-		constexpr const wchar_t swzKey[] = L"VoiceStoryCardcard";
-		constexpr size_t nKeyLen = sizeof(swzKey) / sizeof(wchar_t) - 1;
+		constexpr const wchar_t voiceDir[] = L"VoiceStoryCardcard";
+		constexpr size_t nKeyLen = sizeof(voiceDir) / sizeof(wchar_t) - 1;
+		constexpr const wchar_t stillDir[] = L"Stillstill";
 
 		const auto ExtractAudioDirectory = [](const std::wstring& wstrAudioFolderPath)
 			-> std::wstring
 			{
-				size_t nPos = wstrAudioFolderPath.find(swzKey);
+				size_t nPos = wstrAudioFolderPath.find(voiceDir);
 				if (nPos == std::wstring::npos) return {};
 
 				return wstrAudioFolderPath.substr(0, nPos + nKeyLen);
 			};
 
-		if (wstrCurrent.find(L"Stillstill") != std::wstring::npos)
+		if (wstrCurrent.find(stillDir) != std::wstring::npos)
 		{
-			std::wstring wstrKey = swzKey + wstrCardId;
+			std::wstring wstrKey = voiceDir + wstrCardId;
 			const auto& iter = std::find_if(m_folders.begin(), m_folders.end(),
 				[&wstrKey](const std::wstring& wstr)
 				{
@@ -645,7 +650,7 @@ void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 		{
 			if (wstrCardId.size() > 6)wstrCardId.pop_back();
 
-			std::wstring wstrKey = L"Stillstill" + wstrCardId;
+			std::wstring wstrKey = stillDir + wstrCardId;
 			const auto& iter = std::find_if(m_folders.begin(), m_folders.end(),
 				[&wstrKey](const std::wstring& wstr)
 				{
@@ -707,6 +712,7 @@ void CMainWindow::ShiftText(bool bForward)
 		--m_nTextIndex;
 		if (m_nTextIndex >= m_textData.size())m_nTextIndex = m_textData.size() - 1;
 	}
+
 	UpdateText();
 }
 /*文章更新*/
@@ -721,17 +727,13 @@ void CMainWindow::UpdateText()
 			{
 				m_pMediaPlayer->Play(t.wstrVoicePath.c_str());
 			}
+		}
 
-			::KillTimer(m_hWnd, Timer::kText);
-		}
-		else
-		{
-			constexpr unsigned int kTimerInterval = 2000;
-			::SetTimer(m_hWnd, Timer::kText, kTimerInterval, nullptr);
-		}
+		constexpr unsigned int kTimerInterval = 2000;
+		::SetTimer(m_hWnd, Timer::kText, kTimerInterval, nullptr);
 	}
 
-	::InvalidateRect(m_hWnd, nullptr, FALSE);
+	UpdateScreen();
 }
 /*IMFMediaEngineNotify::EventNotify*/
 void CMainWindow::OnAudioPlayerEvent(unsigned long ulEvent)
