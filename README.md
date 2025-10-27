@@ -1,4 +1,4 @@
-# SweetHomeMaidPlayer
+﻿# SweetHomeMaidPlayer
 
 某寢室再生機  
 - Requisite to run
@@ -44,7 +44,10 @@ The other one will also be loaded after selecting the either.
 
 | Key | Function |
 | ---- | ---- |
+| <kbd>C</kbd> | Toggle text colour between black and white. |
 | <kbd>T</kbd> | Show/Hide text. |
+| <kbd>∧</kbd> | Open the previous folder. |
+| <kbd>∨</kbd> | Open the next folder. |
 
 - Installation of `游明朝` font in the machine is necessary in order to show text.
 - Scenario files are assumed to exist in `/Episode/Card` directory.

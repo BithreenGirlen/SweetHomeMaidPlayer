@@ -240,7 +240,20 @@ LRESULT CMainWindow::OnKeyUp(WPARAM wParam, LPARAM lParam)
 {
 	switch (wParam)
 	{
-	case 0x54:// T key
+	case VK_UP:
+		MenuOnForeFolder();
+		break;
+	case VK_DOWN:
+		MenuOnNextFolder();
+		break;
+	case 'C':
+		if (m_pD2TextWriter != nullptr)
+		{
+			m_pD2TextWriter->SwitchTextColour();
+			UpdateScreen();
+		}
+		break;
+	case 'T':
 		m_bTextHidden ^= true;
 		UpdateScreen();
 		break;
