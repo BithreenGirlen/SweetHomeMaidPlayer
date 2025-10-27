@@ -641,10 +641,10 @@ void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 				});
 			if (iter != m_folders.cend())
 			{
-				wstrImageFolderPath = wstrFolderPath;
 				size_t nIndex = std::distance(m_folders.begin(), iter);
 				wstrAudioFolderPath = ExtractAudioDirectory(m_folders[nIndex]);
 			}
+			wstrImageFolderPath = wstrFolderPath;
 		}
 		else
 		{
