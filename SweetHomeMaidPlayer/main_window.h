@@ -83,7 +83,7 @@ private:
 
 	bool CreateFolderList(const wchar_t* pwzFolderPath);
 	void SetPlayerFolder(const std::wstring &wstrFolderPath);
-	void CreateMessgaeList(const wchar_t* pwzCardId, const wchar_t* pwzAudioFolderPath);
+	void CreateMessgaeList(const std::wstring& wstrCardId, const std::wstring& wstrAudioFolderPath);
 	void SetImages(const wchar_t* pwzImageFolderPath);
 
 	void UpdateScreen();

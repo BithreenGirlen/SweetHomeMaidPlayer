@@ -26,6 +26,7 @@ namespace swmd
 
 				text_utility::ReplaceAll(wstrScenario, L"\\r", L"\r");
 				text_utility::ReplaceAll(wstrScenario, L"\\n", L"\n");
+				text_utility::ReplaceAll(wstrScenario, L"\\t", L"");
 				text_utility::ReplaceAll(wstrScenario, L"\"", L"");
 			}
 		}
@@ -33,7 +34,7 @@ namespace swmd
 		return wstrScenario;
 	}
 
-	void TextToLines(const std::wstring& wstrText, const wchar_t* wpzKey, size_t nKeyLen, std::vector<std::wstring>& lines)
+	static void TextToLines(const std::wstring& wstrText, const wchar_t* wpzKey, size_t nKeyLen, std::vector<std::wstring>& lines)
 	{
 		if (wpzKey == nullptr)return;
 
@@ -50,7 +51,7 @@ namespace swmd
 		}
 	}
 
-	void TruncateLines(std::vector<std::wstring>& lines)
+	static void TruncateLines(std::vector<std::wstring>& lines)
 	{
 		for (auto& line : lines)
 		{
@@ -77,7 +78,7 @@ namespace swmd
 		}
 	}
 
-	std::wstring GetEpisodeJsonPath(const std::wstring& wstrVoiceFolderPath, const std::wstring& wstrCardId)
+	static std::wstring GetEpisodeJsonPath(const std::wstring& wstrVoiceFolderPath, const std::wstring& wstrCardId)
 	{
 		size_t nPos = wstrVoiceFolderPath.rfind(L"Resource");
 		if (nPos == std::wstring::npos)return std::wstring();
@@ -88,12 +89,22 @@ namespace swmd
 		return wstrEpisodeJson;
 	}
 
-	std::wstring TruncateFilePath(std::wstring& wstrFilePath)
+	static std::wstring TruncateFilePath(const std::wstring& wstrFilePath)
 	{
 		size_t nPos = wstrFilePath.rfind(L'/');
 		if (nPos == std::wstring::npos)return wstrFilePath;
 
 		return wstrFilePath.substr(nPos + 1);
+	}
+
+	static std::wstring TruncateCardAudioFilePath(const std::wstring& wstrFilePath)
+	{
+		static constexpr const wchar_t key[] = L"Card/card";
+		static constexpr const size_t keyLen = sizeof(key) / sizeof(wchar_t) - 1;
+		size_t nPos = wstrFilePath.find(key);
+		if (nPos == std::wstring::npos)return wstrFilePath;
+
+		return wstrFilePath.substr(nPos + keyLen);
 	}
 }
 
@@ -127,7 +138,7 @@ bool swmd::LoadScenario(const std::wstring& wstrVoiceFolderPath, const std::wstr
 			{
 				size_t nLen = p - &line[nRead];
 				std::wstring wstr = line.substr(nRead, nLen);
-				wstrVoiceFilePath = wstrVoiceFolderPath + L"\\" + TruncateFilePath(wstr) + L".mp3";
+				wstrVoiceFilePath = wstrVoiceFolderPath + TruncateCardAudioFilePath(wstr) + L".mp3";
 				nRead += nLen + 2;
 			}
 		}

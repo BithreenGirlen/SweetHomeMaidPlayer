@@ -473,8 +473,8 @@ void CMainWindow::MenuOnOpen()
 	std::wstring wstrFolder = win_dialogue::SelectWorkFolder(m_hWnd);
 	if (!wstrFolder.empty())
 	{
-		SetPlayerFolder(wstrFolder);
 		CreateFolderList(wstrFolder.c_str());
+		SetPlayerFolder(wstrFolder);
 	}
 }
 /*次フォルダに移動*/
@@ -612,19 +612,54 @@ void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 	nPos = wstrCurrent.find_first_of(L"0123456789");
 	if (nPos != std::wstring::npos)
 	{
-		if (wcsstr(wstrCurrent.c_str(), L"Stillstill") != nullptr)
+		std::wstring wstrCardId = wstrCurrent.substr(nPos);
+
+		constexpr const wchar_t swzKey[] = L"VoiceStoryCardcard";
+		constexpr size_t nKeyLen = sizeof(swzKey) / sizeof(wchar_t) - 1;
+
+		const auto ExtractAudioDirectory = [](const std::wstring& wstrAudioFolderPath)
+			-> std::wstring
+			{
+				size_t nPos = wstrAudioFolderPath.find(swzKey);
+				if (nPos == std::wstring::npos) return {};
+
+				return wstrAudioFolderPath.substr(0, nPos + nKeyLen);
+			};
+
+		if (wstrCurrent.find(L"Stillstill") != std::wstring::npos)
 		{
-			wstrImageFolderPath = wstrFolderPath;
-			wstrAudioFolderPath = wstrParent + L"\\VoiceStoryCardcard" + wstrCurrent.substr(nPos);
+			std::wstring wstrKey = swzKey + wstrCardId;
+			const auto& iter = std::find_if(m_folders.begin(), m_folders.end(),
+				[&wstrKey](const std::wstring& wstr)
+				{
+					return wstr.find(wstrKey) != std::wstring::npos;
+				});
+			if (iter != m_folders.cend())
+			{
+				wstrImageFolderPath = wstrFolderPath;
+				size_t nIndex = std::distance(m_folders.begin(), iter);
+				wstrAudioFolderPath = ExtractAudioDirectory(m_folders[nIndex]);
+			}
 		}
 		else
 		{
-			wstrAudioFolderPath = wstrFolderPath;
-			wstrImageFolderPath = wstrParent + L"\\Stillstill" + wstrCurrent.substr(nPos);
+			if (wstrCardId.size() > 6)wstrCardId.pop_back();
+
+			std::wstring wstrKey = L"Stillstill" + wstrCardId;
+			const auto& iter = std::find_if(m_folders.begin(), m_folders.end(),
+				[&wstrKey](const std::wstring& wstr)
+				{
+					return wstr.find(wstrKey) != std::wstring::npos;
+				});
+			if (iter != m_folders.cend())
+			{
+				wstrAudioFolderPath = ExtractAudioDirectory(wstrFolderPath);
+				size_t nIndex = std::distance(m_folders.begin(), iter);
+				wstrImageFolderPath = m_folders[nIndex];
+			}
 		}
 
-		/*汚らしいが、渡した先でまた文字列操作するのも嫌なので両方渡す*/
-		CreateMessgaeList(wstrCurrent.substr(nPos).c_str(), wstrAudioFolderPath.c_str());
+		CreateMessgaeList(wstrCardId.c_str(), wstrAudioFolderPath.c_str());
 	}
 
 	SetImages(wstrImageFolderPath.c_str());
@@ -632,35 +667,11 @@ void CMainWindow::SetPlayerFolder(const std::wstring& wstrFolderPath)
 	ChangeWindowTitle(m_bPlayReady ? wstrFolderPath.c_str() : nullptr);
 }
 /*文章一覧作成*/
-void CMainWindow::CreateMessgaeList(const wchar_t* pwzCardId, const wchar_t* pwzAudioFolderPath)
+void CMainWindow::CreateMessgaeList(const std::wstring& wstrCardId, const std::wstring& wstrAudioFolderPath)
 {
 	m_textData.clear();
 	m_nTextIndex = 0;
-	if (pwzCardId != nullptr && pwzAudioFolderPath != nullptr)
-	{
-		swmd::LoadScenario(pwzAudioFolderPath, pwzCardId, m_textData);
-	}
-
-	if (m_textData.empty())
-	{
-		/*台本ファイルなし、或いは読み取り失敗*/
-		std::vector<std::wstring> audioFiles;
-		bool bRet = win_filesystem::CreateFilePathList(pwzAudioFolderPath, L".mp3", audioFiles);
-		if (bRet && m_pMediaPlayer != nullptr)
-		{
-			audioFiles.erase(std::remove_if(audioFiles.begin(), audioFiles.end(),
-				[](const std::wstring& wstr)
-				-> bool
-				{
-					return wstr.find(L"_ver2") != std::wstring::npos;
-				}), audioFiles.end());
-
-			for (const std::wstring& audioFile : audioFiles)
-			{
-				m_textData.emplace_back(adv::TextDatum{ L"", audioFile });
-			}
-		}
-	}
+	swmd::LoadScenario(wstrAudioFolderPath, wstrCardId, m_textData);
 
 	UpdateText();
 }
